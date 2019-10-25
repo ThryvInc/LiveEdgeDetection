@@ -452,7 +452,7 @@ public class ScanUtils {
         if (bottomHeight > resultHeight)
             resultHeight = bottomHeight;
 
-        Mat inputMat = new Mat(image.getHeight(), image.getHeight(), CvType.CV_8UC1);
+        Mat inputMat = new Mat(image.getWidth(), image.getHeight(), CvType.CV_8UC1);
         Utils.bitmapToMat(image, inputMat);
         Mat outputMat = new Mat(resultWidth, resultHeight, CvType.CV_8UC1);
 
