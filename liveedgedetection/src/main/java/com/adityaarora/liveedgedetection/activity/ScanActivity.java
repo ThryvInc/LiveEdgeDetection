@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.Matrix;
 import android.graphics.PointF;
 import android.os.Build;
 import android.os.Bundle;
@@ -20,6 +21,7 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -75,6 +77,8 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
     private View cropRejectBtn;
     private Bitmap copyBitmap;
     private FrameLayout cropLayout;
+    private float lastScaleX = 1.0f;
+    private float lastScaleY = 1.0f;
 
     private double maxResolutionInMegapixels = 6.0;
 
@@ -86,6 +90,29 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
         maxResolutionInMegapixels = getIntent().getDoubleExtra("maxResolutionInMegapixels", maxResolutionInMegapixels);
 
         init();
+
+        ViewTreeObserver vto = cropImageView.getViewTreeObserver();
+        vto.addOnGlobalLayoutListener (new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                if (copyBitmap == null) return;
+
+                // Get image matrix values and place them in an array
+                float[] f = new float[9];
+                cropImageView.getImageMatrix().getValues(f);
+
+                // Extract the scale values using the constants (if aspect ratio maintained, scaleX == scaleY)
+                final float scaleX = f[Matrix.MSCALE_X];
+                final float scaleY = f[Matrix.MSCALE_Y];
+                if (scaleX == lastScaleX && scaleY == lastScaleY) return;
+
+                lastScaleX = scaleX;
+                lastScaleY = scaleY;
+
+                polygonView.setScaleX(scaleX);
+                polygonView.setScaleY(scaleY);
+            }
+        });
     }
 
     private void init() {
@@ -206,10 +233,6 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
         try {
             copyBitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true);
 
-            int height = getWindow().findViewById(Window.ID_ANDROID_CONTENT).getHeight();
-            int width = getWindow().findViewById(Window.ID_ANDROID_CONTENT).getWidth();
-
-            copyBitmap = ScanUtils.resizeToScreenContentSize(copyBitmap, width, height);
             Mat originalMat = new Mat(copyBitmap.getHeight(), copyBitmap.getWidth(), CvType.CV_8UC1);
             Utils.bitmapToMat(copyBitmap, originalMat);
             ArrayList<PointF> points;
@@ -243,12 +266,14 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
                 FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(copyBitmap.getWidth() + 2 * padding, copyBitmap.getHeight() + 2 * padding);
                 layoutParams.gravity = Gravity.CENTER;
                 polygonView.setLayoutParams(layoutParams);
+
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
                     TransitionManager.beginDelayedTransition(containerScan);
                 cropLayout.setVisibility(View.VISIBLE);
 
                 cropImageView.setImageBitmap(copyBitmap);
-                cropImageView.setScaleType(ImageView.ScaleType.FIT_XY);
+                cropImageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+
             } catch (Exception e) {
                 Log.e(TAG, e.getMessage(), e);
             }
