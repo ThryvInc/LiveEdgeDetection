@@ -45,6 +45,7 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
     private final ScanCanvasView scanCanvasView;
     private int vWidth = 0;
     private int vHeight = 0;
+    private double maxResolutionInMegapixels = 6.0;
 
     private final Context context;
     private Camera camera;
@@ -88,6 +89,10 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
         scanCanvasView.invalidate();
     }
 
+    public void setMaxResolutionInMegapixels(double mp) {
+        maxResolutionInMegapixels = mp;
+    }
+
     private void openCamera() {
         if (camera == null) {
             Camera.CameraInfo info = new Camera.CameraInfo();
@@ -116,7 +121,7 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
             return;
         }
         if (previewSize == null)
-            previewSize = ScanUtils.getOptimalPreviewSize(camera, vWidth, vHeight);
+            previewSize = ScanUtils.getOptimalPreviewSize(camera, vWidth, vHeight, maxResolutionInMegapixels);
 
         Camera.Parameters parameters = camera.getParameters();
         camera.setDisplayOrientation(ScanUtils.configureCameraAngle((Activity) context));
@@ -129,7 +134,7 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
             parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
         }
 
-        Camera.Size size = ScanUtils.determinePictureSize(camera, parameters.getPreviewSize());
+        Camera.Size size = ScanUtils.determinePictureSize(camera, parameters.getPreviewSize(), maxResolutionInMegapixels);
         parameters.setPictureSize(size.width, size.height);
         parameters.setPictureFormat(ImageFormat.JPEG);
 
@@ -414,7 +419,7 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
         vWidth = resolveSize(getSuggestedMinimumWidth(), widthMeasureSpec);
         vHeight = resolveSize(getSuggestedMinimumHeight(), heightMeasureSpec);
         setMeasuredDimension(vWidth, vHeight);
-        previewSize = ScanUtils.getOptimalPreviewSize(camera, vWidth, vHeight);
+        previewSize = ScanUtils.getOptimalPreviewSize(camera, vWidth, vHeight, maxResolutionInMegapixels);
     }
 
     @SuppressWarnings("SuspiciousNameCombination")

@@ -55,7 +55,7 @@ public class ScanUtils {
         return Math.abs(left - right) < epsilon;
     }
 
-    public static Camera.Size determinePictureSize(Camera camera, Camera.Size previewSize) {
+    public static Camera.Size determinePictureSize(Camera camera, Camera.Size previewSize, final double maxResolutionInMegapixels) {
         if (camera == null) return null;
         Camera.Parameters cameraParams = camera.getParameters();
         List<Camera.Size> pictureSizeList = cameraParams.getSupportedPictureSizes();
@@ -76,7 +76,8 @@ public class ScanUtils {
         for (Camera.Size size : pictureSizeList) {
             curRatio = ((float) size.width) / size.height;
             deltaRatio = Math.abs(reqRatio - curRatio);
-            if (deltaRatio < deltaRatioMin) {
+            if ((deltaRatio < deltaRatioMin) &&
+                    (size.width * size.height <= maxResolutionInMegapixels * 1048576)) {
                 deltaRatioMin = deltaRatio;
                 retSize = size;
             }
@@ -88,7 +89,7 @@ public class ScanUtils {
         return retSize;
     }
 
-    public static Camera.Size getOptimalPreviewSize(Camera camera, int w, int h) {
+    public static Camera.Size getOptimalPreviewSize(Camera camera, int w, int h, final double maxResolutionInMegapixels) {
         if (camera == null) return null;
         final double targetRatio = (double) h / w;
         Camera.Parameters cameraParams = camera.getParameters();
@@ -114,7 +115,8 @@ public class ScanUtils {
         double bestRatio = bestSize.height/bestSize.width;
         for (final Camera.Size size: previewSizeList) {
             if ((double) size.height / size.width != bestRatio) break;
-            bestSize = size;
+            if (size.width * size.height <= maxResolutionInMegapixels * 1048576)
+                bestSize = size;
         }
 
         return bestSize;
