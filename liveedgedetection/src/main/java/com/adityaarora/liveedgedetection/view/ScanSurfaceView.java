@@ -45,7 +45,8 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
     private final ScanCanvasView scanCanvasView;
     private int vWidth = 0;
     private int vHeight = 0;
-    private double maxResolutionInMegapixels = 6.0;
+    private double minResolutionInMegapixels = 4.0;
+    private double maxResolutionInMegapixels = 7.0;
 
     private final Context context;
     private Camera camera;
@@ -89,6 +90,9 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
         scanCanvasView.invalidate();
     }
 
+    public void setMinResolutionInMegapixels(double mp) {
+        minResolutionInMegapixels = mp;
+    }
     public void setMaxResolutionInMegapixels(double mp) {
         maxResolutionInMegapixels = mp;
     }
@@ -134,7 +138,7 @@ public class ScanSurfaceView extends FrameLayout implements SurfaceHolder.Callba
             parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
         }
 
-        Camera.Size size = ScanUtils.determinePictureSize(camera, parameters.getPreviewSize(), maxResolutionInMegapixels);
+        Camera.Size size = ScanUtils.determinePictureSize(camera, parameters.getPreviewSize(), minResolutionInMegapixels, maxResolutionInMegapixels);
         parameters.setPictureSize(size.width, size.height);
         parameters.setPictureFormat(ImageFormat.JPEG);
 

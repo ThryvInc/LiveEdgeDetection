@@ -80,13 +80,15 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
     private float lastScaleX = 1.0f;
     private float lastScaleY = 1.0f;
 
-    private double maxResolutionInMegapixels = 6.0;
+    private double minResolutionInMegapixels = 4.0;
+    private double maxResolutionInMegapixels = 7.0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_scan);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        minResolutionInMegapixels = getIntent().getDoubleExtra("minResolutionInMegapixels", minResolutionInMegapixels);
         maxResolutionInMegapixels = getIntent().getDoubleExtra("maxResolutionInMegapixels", maxResolutionInMegapixels);
 
         init();
@@ -183,6 +185,7 @@ public class ScanActivity extends AppCompatActivity implements IScanner, View.On
                         @Override
                         public void run() {
                             mImageSurfaceView = new ScanSurfaceView(ScanActivity.this, ScanActivity.this);
+                            mImageSurfaceView.setMinResolutionInMegapixels(minResolutionInMegapixels);
                             mImageSurfaceView.setMaxResolutionInMegapixels(maxResolutionInMegapixels);
                             cameraPreviewLayout.addView(mImageSurfaceView);
                         }

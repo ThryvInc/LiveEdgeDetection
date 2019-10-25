@@ -55,7 +55,7 @@ public class ScanUtils {
         return Math.abs(left - right) < epsilon;
     }
 
-    public static Camera.Size determinePictureSize(Camera camera, Camera.Size previewSize, final double maxResolutionInMegapixels) {
+    public static Camera.Size determinePictureSize(Camera camera, Camera.Size previewSize, final double minResolutionInMegapixels, final double maxResolutionInMegapixels) {
         if (camera == null) return null;
         Camera.Parameters cameraParams = camera.getParameters();
         List<Camera.Size> pictureSizeList = cameraParams.getSupportedPictureSizes();
@@ -77,6 +77,7 @@ public class ScanUtils {
             curRatio = ((float) size.width) / size.height;
             deltaRatio = Math.abs(reqRatio - curRatio);
             if ((deltaRatio < deltaRatioMin) &&
+                    (size.width * size.height >= minResolutionInMegapixels * 1048576) &&
                     (size.width * size.height <= maxResolutionInMegapixels * 1048576)) {
                 deltaRatioMin = deltaRatio;
                 retSize = size;
