@@ -109,7 +109,15 @@ public class ScanUtils {
             }
         });
 
-        return previewSizeList.get(0);
+        // find the largest resolution under the limit that still maintains the best ratio
+        Camera.Size bestSize = previewSizeList.get(0);
+        double bestRatio = bestSize.height/bestSize.width;
+        for (final Camera.Size size: previewSizeList) {
+            if ((double) size.height / size.width != bestRatio) break;
+            bestSize = size;
+        }
+
+        return bestSize;
     }
 
     public static int getDisplayOrientation(Activity activity, int cameraId) {
