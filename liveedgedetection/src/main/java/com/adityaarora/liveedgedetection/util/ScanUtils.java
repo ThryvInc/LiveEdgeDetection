@@ -68,25 +68,31 @@ public class ScanUtils {
             }
         });
         Camera.Size retSize = null;
+        Camera.Size backupRetSize = null;
 
         // if the preview size is not supported as a picture size
         float reqRatio = ((float) previewSize.width) / previewSize.height;
         float curRatio, deltaRatio;
         float deltaRatioMin = Float.MAX_VALUE;
         for (Camera.Size size : pictureSizeList) {
+            double resolution = size.width * size.height;
             curRatio = ((float) size.width) / size.height;
             deltaRatio = Math.abs(reqRatio - curRatio);
+            if (ScanUtils.compareFloats(deltaRatio, 0) && backupRetSize == null) backupRetSize = size;
             if ((deltaRatio < deltaRatioMin) &&
-                    (size.width * size.height >= minResolutionInMegapixels * 1048576) &&
-                    (size.width * size.height <= maxResolutionInMegapixels * 1048576)) {
+                    (resolution >= minResolutionInMegapixels * 1048576) &&
+                    (resolution <= maxResolutionInMegapixels * 1048576)) {
                 deltaRatioMin = deltaRatio;
                 retSize = size;
             }
-            if (ScanUtils.compareFloats(deltaRatio, 0)) {
+            if (ScanUtils.compareFloats(deltaRatio, 0) && retSize != null) {
                 break;
             }
         }
 
+        if (retSize == null) {
+            retSize = (backupRetSize == null) ? pictureSizeList.get(0) : backupRetSize;
+        }
         return retSize;
     }
 
